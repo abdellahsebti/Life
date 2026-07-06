@@ -1,0 +1,85 @@
+Act as an expert frontend developer and UI/UX designer. Your task is to build the complete, fully functional frontend for a web app called "LifePulse". 
+
+LifePulse is a personal wellness and connection tracker that combines a daily mood/energy journal with a social contact tracker. 
+
+IMPORTANT: Build this as a standalone frontend first. Use a dedicated API service layer that returns mock data asynchronously, so the UI is fully populated and structured perfectly for a real backend later.
+
+### 🛠️ TECH STACK
+- React (Vite)
+- Tailwind CSS (for all styling, no custom CSS files)
+- Lucide React (for clean, modern icons)
+- Recharts (for data visualization)
+- date-fns (for date formatting and math)
+
+### 🎨 UI/UX DESIGN SYSTEM (Crucial)
+The vibe must be "bright, simple, airy, and friendly". 
+- **Backgrounds:** Soft, light backgrounds. Main app: `bg-slate-50`. Cards: `bg-white`.
+- **Colors:** Bright, pastel accents. Primary: Soft Blue (`bg-blue-500`). Success: Soft Green (`bg-emerald-100`). Warning: Soft Yellow (`bg-amber-100`). Danger: Soft Red (`bg-rose-100`).
+- **Shapes & Depth:** Generous rounded corners (`rounded-2xl` for cards, `rounded-full` for bubbles/avatars). Soft shadows (`shadow-sm`, `shadow-lg` for bubbles).
+- **Interactions:** Add `transition-all duration-300` to interactive elements. Bubbles should scale up and glow on hover.
+
+### 📁 FILE & FOLDER STRUCTURE
+- `src/main.jsx`
+- `src/App.jsx` (Main layout and tab state)
+- `src/data/mockData.js` (Comprehensive mock data)
+- `src/services/api.js` (CRITICAL: The placeholder backend fetch layer)
+- `src/components/Layout.jsx` 
+- `src/components/Dashboard/DailyCheckIn.jsx` 
+- `src/components/Dashboard/TodaySummary.jsx` 
+- `src/components/Dashboard/ContactReminders.jsx` 
+- `src/components/Dashboard/MoodTrend.jsx` 
+- `src/components/Contacts/RelationshipBubbles.jsx` (The visual bubble network)
+- `src/components/Contacts/SimpleContactList.jsx` (The simple list fallback)
+- `src/components/Contacts/AddContactModal.jsx` 
+- `src/components/Contacts/LogInteractionModal.jsx` 
+- `src/components/Insights/InsightsView.jsx` 
+
+### 🧩 COMPONENT BREAKDOWN & REQUIREMENTS
+
+#### 1. The Backend Placeholder (`src/services/api.js`)
+- Create an `api.js` file that exports async functions: `fetchContacts()`, `fetchLogs()`, `logInteraction()`, `addContact()`.
+- These functions MUST use `async/await` and return `Promise.resolve(mockData)` with a slight `setTimeout` delay (e.g., 300ms) to simulate a real network request. 
+- This ensures the frontend uses `useEffect` and loading states exactly as it would with a real backend.
+
+#### 2. Layout & Navigation (`Layout.jsx`, `App.jsx`)
+- Responsive layout. Desktop: clean left sidebar (`w-64`). Mobile: bottom nav.
+- Highlight active tab with `bg-blue-50 text-blue-600 rounded-xl`.
+- Main content area: `max-w-6xl mx-auto p-6`.
+
+#### 3. Dashboard View
+- **DailyCheckIn:** Prominent card. 5 large emoji buttons for mood (😞 😐 🙂 😊 🤩) that scale and change color when selected. Energy slider (1-10). Note textarea. Submit button.
+- **TodaySummary:** Two side-by-side cards for today's Mood and Energy.
+- **ContactReminders:** "Who to reach out to" list. Color-coded badges (Red=overdue, Yellow=due soon, Green=fresh). Quick "Log" button.
+- **MoodTrend:** Recharts `<BarChart>` for the last 7 days. Soft blue bars, rounded tops.
+
+#### 4. Contacts View (The Core Update)
+- **Header:** Title "My People" with a toggle switch: "Bubble View" | "List View". Plus an "Add Contact" button.
+- **RelationshipBubbles.jsx (Default View):** 
+  - Display contacts as a beautiful, organic cluster of floating "bubbles".
+  - Each bubble is a large circle (`rounded-full`) containing the user's initials or an avatar.
+  - **Size:** Make the bubble size slightly larger for close family/best friends, and smaller for acquaintances.
+  - **Color:** Color-code the bubble borders or backgrounds based on relationship type (e.g., Blue for friends, Pink for family, Purple for colleagues).
+  - **Interaction:** Hovering over a bubble shows a tooltip with their name and "Last contacted: X days ago". Clicking a bubble opens the `LogInteractionModal`.
+  - Use CSS flexbox with `flex-wrap`, `gap-4`, and varying `w-20 h-20`, `w-24 h-24` sizes to create the cluster effect.
+- **SimpleContactList.jsx (Toggle View):**
+  - A very simple, clean, minimalist list. 
+  - Just a standard `<ul>` with `<li>` items. Each item has a small avatar, name, and a subtle right-aligned text showing "X days ago". 
+  - Clicking an item opens the `LogInteractionModal`.
+- **Modals:** Keep `AddContactModal` and `LogInteractionModal` clean, using a backdrop blur (`backdrop-blur-sm bg-black/20`).
+
+#### 5. Insights View (`InsightsView.jsx`)
+- **Mood & Energy Over Time:** Recharts `<AreaChart>` with a soft gradient fill.
+- **Correlation Card:** Bright soft yellow card with a lightbulb icon. Text: "💡 Insight: You report a 20% higher mood on days you interact with friends!"
+
+#### 6. Mock Data (`mockData.js`)
+- 30 days of `dailyLogs`.
+- 6-8 `contacts` with varying relationships, frequencies, and `last_contacted` dates. Include a mix of overdue and fresh contacts.
+
+### ⚙️ EXECUTION RULES FOR REPLIT AI
+1. **Do not truncate code.** Write out the complete, working code for every single file. 
+2. **Ensure it runs immediately.** The UI must look beautiful and have data populated the second I hit "Run".
+3. **Mobile First.** Ensure the Bubble view wraps beautifully on mobile, and the List view is fully responsive.
+4. **No external CSS.** Rely entirely on Tailwind utility classes.
+5. **Install dependencies.** Automatically run `npm install lucide-react recharts date-fns` in the Replit shell.
+
+Take a deep breath, plan the file structure, and generate the complete frontend now.

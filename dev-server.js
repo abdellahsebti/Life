@@ -19,13 +19,33 @@ import contactsIndexHandler    from './api/contacts/index.js';
 import contactsCreateHandler   from './api/contacts/create.js';
 import contactsInteractHandler from './api/contacts/interact.js';
 
+// ── Reminders ─────────────────────────────────────────────────────────────────
+import remindersHandler from './api/reminders/send.js';
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const app = express();
 app.use(express.json());
 
-// Wrap a Vercel-style handler for Express (signatures are compatible).
-const h = (handler) => (req, res) => handler(req, res);
+/**
+ * Wrap a Vercel-style handler for Express.
+ * Catches both synchronous throws and async rejections so the dev server
+ * always returns a deterministic response instead of hanging or crashing.
+ */
+const h = (handler) => (req, res, next) => {
+  try {
+    const result = handler(req, res);
+    if (result && typeof result.catch === 'function') {
+      result.catch((err) => {
+        console.error('[api error]', err);
+        if (!res.headersSent) res.status(500).json({ error: err.message ?? 'Internal server error' });
+      });
+    }
+  } catch (err) {
+    console.error('[api error]', err);
+    if (!res.headersSent) res.status(500).json({ error: err.message ?? 'Internal server error' });
+  }
+};
 
 // Auth
 app.post('/api/auth/login',    h(loginHandler));
@@ -40,6 +60,10 @@ app.post('/api/logs/create',  h(logsCreateHandler));
 app.get ('/api/contacts',          h(contactsIndexHandler));
 app.post('/api/contacts/create',   h(contactsCreateHandler));
 app.post('/api/contacts/interact', h(contactsInteractHandler));
+
+// Reminders / cron
+app.get ('/api/reminders/send', h(remindersHandler));
+app.post('/api/reminders/send', h(remindersHandler));
 
 // Catch-all — helps surface typos quickly
 app.use('/api', (req, res) => {

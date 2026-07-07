@@ -121,7 +121,7 @@ create table if not exists public.interactions (
   contact_id       uuid not null references public.contacts(id) on delete cascade,
   user_id          uuid not null references public.profiles(id) on delete cascade,
   interaction_date timestamptz not null default now(),
-  type             text not null check (type in ('call','text','in-person','email','other')),
+  type             text not null check (type in ('call','text','in-person','email','video','other')),
   note             text default '',
   created_at       timestamptz not null default now()
 );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, Users, LineChart } from 'lucide-react';
+import { LayoutDashboard, Users, LineChart, LogOut } from 'lucide-react';
+import { supabase } from '@/lib/supabase-client';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,10 +11,15 @@ export default function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
 
   const navItems = [
-    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/contacts', label: 'My People', icon: Users },
     { href: '/insights', label: 'Insights', icon: LineChart },
   ];
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // ProtectedRoute's onAuthStateChange listener will redirect to AuthScreen automatically
+  };
 
   return (
     <div className="min-h-[100dvh] flex flex-col md:flex-row bg-slate-50 text-slate-900">
@@ -27,17 +33,18 @@ export default function Layout({ children }: LayoutProps) {
             LifePulse
           </h1>
         </div>
+
         <nav className="flex-1 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href;
             return (
-              <Link 
-                key={item.href} 
-                href={item.href} 
+              <Link
+                key={item.href}
+                href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors duration-300 ${
-                  isActive 
-                    ? 'bg-blue-50 text-blue-600 font-medium' 
+                  isActive
+                    ? 'bg-blue-50 text-blue-600 font-medium'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
@@ -47,6 +54,15 @@ export default function Layout({ children }: LayoutProps) {
             );
           })}
         </nav>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:bg-red-50 hover:text-red-500 transition-colors duration-200 mt-4 w-full text-left"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="text-sm font-medium">Log out</span>
+        </button>
       </aside>
 
       {/* Main Content Area */}
@@ -63,8 +79,8 @@ export default function Layout({ children }: LayoutProps) {
             const Icon = item.icon;
             const isActive = location === item.href;
             return (
-              <Link 
-                key={item.href} 
+              <Link
+                key={item.href}
                 href={item.href}
                 className={`flex flex-col items-center justify-center p-2 min-w-[4rem] rounded-xl transition-colors ${
                   isActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
@@ -77,6 +93,17 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
             );
           })}
+
+          {/* Mobile logout */}
+          <button
+            onClick={handleLogout}
+            className="flex flex-col items-center justify-center p-2 min-w-[4rem] rounded-xl text-slate-400 hover:text-red-500 transition-colors"
+          >
+            <div className="p-1 rounded-full">
+              <LogOut className="w-6 h-6 mb-1" />
+            </div>
+            <span className="text-[10px] font-medium">Log out</span>
+          </button>
         </div>
       </nav>
     </div>

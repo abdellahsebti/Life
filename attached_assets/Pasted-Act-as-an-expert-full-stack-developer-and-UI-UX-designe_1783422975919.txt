@@ -1,0 +1,74 @@
+Act as an expert full-stack developer and UI/UX designer. Your task is to add a complete, secure backend to the existing LifePulse frontend app, integrate it with the frontend, and prepare it for deployment on Vercel. 
+
+LifePulse is a personal wellness and connection tracker. The backend must handle authentication, database operations, and automated email reminders.
+
+### 🛠️ TECH STACK
+- **Frontend:** Existing React (Vite) + Tailwind CSS + Lucide React + Recharts.
+- **Backend:** Vercel Serverless Functions (Node.js) in the `/api` directory.
+- **Database & Auth:** Supabase (PostgreSQL + Supabase Auth).
+- **Email:** Resend API.
+- **Validation:** Zod.
+
+### 📁 FILE & FOLDER STRUCTURE
+Add the following structure to the existing project:
+
+```text
+/api
+  /auth
+    login.js          # POST /api/auth/login
+    register.js       # POST /api/auth/register
+    me.js             # GET /api/auth/me
+  /logs
+    index.js          # GET /api/logs
+    create.js         # POST /api/logs
+  /contacts
+    index.js          # GET /api/contacts
+    create.js         # POST /api/contacts
+    interact.js       # POST /api/contacts/interact
+  /reminders
+    send.js           # POST /api/reminders/send (Cron endpoint)
+  /utils
+    supabase.js       # Supabase server client
+    auth.js           # Auth middleware to verify JWT
+    resend.js         # Resend client
+/lib
+  supabase-client.js  # Browser-side Supabase client
+/src/components/auth
+  AuthScreen.jsx      # Combined Login/Register UI
+  ProtectedRoute.jsx  # Wrapper to redirect unauthenticated users
+vercel.json           # Vercel config for API routes and cron jobs
+.env.local            # Environment variables template
+```
+
+### 🗄️ DATABASE SCHEMA (Supabase SQL)
+Generate the exact SQL to run in Supabase. It must include:
+1. `profiles` table (linked to `auth.users`).
+2. `daily_logs` table (user_id, log_date, mood, energy, note).
+3. `contacts` table (user_id, name, relationship, frequency_days, last_contacted).
+4. `interactions` table (contact_id, user_id, interaction_date, type, note).
+5. **CRITICAL:** Enable Row Level Security (RLS) on ALL tables and create policies ensuring users can ONLY read, insert, update, and delete their own data (`auth.uid() = user_id`).
+
+### 🔐 SECURITY & AUTH REQUIREMENTS
+1. All `/api` routes (except login/register) must use the `auth.js` middleware to verify the Supabase JWT token from the `Authorization: Bearer <token>` header.
+2. Use Zod to validate all incoming request bodies.
+3. The frontend must store the Supabase session token and attach it to every `fetch` request to the `/api` routes.
+
+### 📧 EMAIL REMINDER SYSTEM (Cron Job)
+1. Create `/api/reminders/send.js`.
+2. This endpoint must query the database for users who have NOT logged a mood for today's date.
+3. Use Resend to send them a friendly reminder email: "Hey! Don't forget to check in your mood and see who you need to reach out to today in LifePulse! 🌟"
+4. Configure `vercel.json` to trigger this endpoint automatically every day at 9:00 AM UTC.
+
+### 🎨 FRONTEND INTEGRATION UPDATES
+1. **Auth Flow:** Create `AuthScreen.jsx` with a beautiful, bright UI matching the existing design system (soft blues, rounded corners, pastel accents). Include tabs or a toggle for Login vs Register.
+2. **Protected App:** Wrap the main `App.jsx` layout in `ProtectedRoute.jsx`. If the user is not logged in, show `AuthScreen.jsx`.
+3. **API Service Layer:** Update `src/services/api.js`. Replace all `Promise.resolve(mockData)` with actual `fetch()` calls to the `/api` routes. Include the JWT token in the headers.
+4. **Logout:** Add a logout button to the sidebar/navigation that clears the session and redirects to the login screen.
+
+### ⚙️ EXECUTION RULES FOR REPLIT AI
+1. **DO NOT TRUNCATE CODE.** Write out the complete, working code for every single file. If you hit a length limit, stop and ask me to say "continue", but do not use placeholders like `// ... rest of code`.
+2. **Install dependencies:** Run `npm install @supabase/supabase-js resend zod` in the shell.
+3. **Create `vercel.json`** exactly as needed to route `/api/*` to the serverless functions and serve the Vite build for the frontend.
+4. **Provide Setup Instructions:** At the very end of your response, provide a clear, step-by-step guide on how I need to set up Supabase (run the SQL, get keys), Resend (get API key), and deploy to Vercel.
+
+Take a deep breath, plan the architecture, and generate the complete backend, frontend integration, and deployment configuration now.

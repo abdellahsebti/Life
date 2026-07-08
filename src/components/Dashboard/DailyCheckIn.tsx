@@ -46,7 +46,7 @@ export default function DailyCheckIn({ onLogSubmitted }: { onLogSubmitted: () =>
       setNote('');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Something went wrong';
-      const isSetup = msg.toLowerCase().includes('does not exist') || msg.toLowerCase().includes('relation');
+      const isSetup = /relation ".+?" does not exist/i.test(msg) || /table ".+?" does not exist/i.test(msg);
       toast({
         title: 'Could not save check-in',
         description: isSetup
@@ -126,10 +126,12 @@ export default function DailyCheckIn({ onLogSubmitted }: { onLogSubmitted: () =>
               />
             </div>
             <input
+              id="energy-slider"
               type="range"
               min="1"
               max="10"
               value={energy}
+              aria-label={`Energy level: ${energy} out of 10 (${energyMeta.label})`}
               onChange={(e) => setEnergy(Number(e.target.value))}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />

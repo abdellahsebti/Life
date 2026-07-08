@@ -39,7 +39,6 @@ create policy "Users can view own profile"
   on public.profiles for select
   using (auth.uid() = id);
 
--- Insert is handled by the trigger (security definer), but allow direct insert too
 create policy "Users can insert own profile"
   on public.profiles for insert
   with check (auth.uid() = id);
@@ -143,3 +142,18 @@ create policy "Users can update own interactions"
 create policy "Users can delete own interactions"
   on public.interactions for delete
   using (auth.uid() = user_id);
+
+
+-- ============================================================
+-- IMPORTANT: PostgREST schema cache fix
+-- These grants expose the tables through Supabase's API layer.
+-- Without them you get: "could not find the table in schema cache"
+-- ============================================================
+grant usage on schema public to anon, authenticated, service_role;
+grant all on all tables in schema public to anon, authenticated, service_role;
+grant all on all sequences in schema public to anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+
+-- Reload PostgREST schema cache immediately after creating tables
+notify pgrst, 'reload schema';

@@ -1,81 +1,113 @@
 import React, { useState } from 'react';
 import { Contact } from '@/data/mockData';
 import { differenceInDays } from 'date-fns';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { getInitials, getAvatarColor, getContactStatus, STATUS_META } from '@/lib/contact-utils';
 import LogInteractionModal from '../Contacts/LogInteractionModal';
+import { Users } from 'lucide-react';
 
-const getInitials = (name: string) => {
-  return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-};
+export default function ContactReminders({
+  contacts,
+  onLogInteraction,
+}: {
+  contacts: Contact[];
+  onLogInteraction: () => void;
+}) {
+  const [selected, setSelected] = useState<Contact | null>(null);
 
-export default function ContactReminders({ contacts, onLogInteraction }: { contacts: Contact[], onLogInteraction: () => void }) {
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-
-  const getStatus = (contact: Contact) => {
-    const days = differenceInDays(new Date(), new Date(contact.lastContacted));
-    const thresholds = {
-      weekly: 7,
-      biweekly: 14,
-      monthly: 30,
-    };
-    const max = thresholds[contact.frequency];
-    
-    if (days > max + 3) return { label: 'Overdue', color: 'text-rose-600 bg-rose-50 border-rose-100', dot: 'bg-rose-500' };
-    if (days > max - 2) return { label: 'Due Soon', color: 'text-amber-600 bg-amber-50 border-amber-100', dot: 'bg-amber-400' };
-    return { label: 'Fresh', color: 'text-emerald-600 bg-emerald-50 border-emerald-100', dot: 'bg-emerald-400' };
-  };
-
-  const sortedContacts = [...contacts].sort((a, b) => {
-    const aDays = differenceInDays(new Date(), new Date(a.lastContacted));
-    const bDays = differenceInDays(new Date(), new Date(b.lastContacted));
-    return bDays - aDays;
-  }).slice(0, 4);
+  const sorted = [...contacts]
+    .sort((a, b) => {
+      const aDays = differenceInDays(new Date(), new Date(a.lastContacted));
+      const bDays = differenceInDays(new Date(), new Date(b.lastContacted));
+      return bDays - aDays;
+    })
+    .slice(0, 5);
 
   return (
     <>
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col h-full">
-        <h2 className="text-xl font-bold text-slate-800 mb-6">Who to reach out to</h2>
-        
-        <div className="space-y-4 flex-1">
-          {sortedContacts.map((contact) => {
-            const status = getStatus(contact);
-            const days = differenceInDays(new Date(), new Date(contact.lastContacted));
-            
-            return (
-              <div key={contact.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors group">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold shrink-0">
-                  {getInitials(contact.name)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 truncate">{contact.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${status.color} flex items-center gap-1.5`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`}></span>
-                      {status.label}
-                    </span>
-                    <span className="text-xs text-slate-400">{days} days ago</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setSelectedContact(contact)}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors opacity-0 group-hover:opacity-100 md:opacity-100"
-                >
-                  Log
-                </button>
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col h-full overflow-hidden">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-slate-50">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">Stay connected</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Who to reach out to next</p>
+          </div>
+          {contacts.length > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              {contacts.filter(c => getContactStatus(c.lastContacted, c.frequency) !== 'fresh').length} pending
+            </Badge>
+          )}
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
+          {sorted.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+                <Users className="w-5 h-5 text-slate-400" />
               </div>
-            );
-          })}
+              <p className="text-sm font-medium text-slate-600">No contacts yet</p>
+              <p className="text-xs text-slate-400 mt-1">Add people in My People to see reminders here</p>
+            </div>
+          ) : (
+            sorted.map((contact) => {
+              const status = getContactStatus(contact.lastContacted, contact.frequency);
+              const meta = STATUS_META[status];
+              const color = getAvatarColor(contact.name);
+              const days = differenceInDays(new Date(), new Date(contact.lastContacted));
+
+              return (
+                <div
+                  key={contact.id}
+                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors group"
+                >
+                  {/* Avatar */}
+                  <Avatar className="h-10 w-10 shrink-0">
+                    <AvatarFallback className={`${color.bg} ${color.text} text-xs font-bold`}>
+                      {getInitials(contact.name)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate leading-tight">
+                      {contact.name}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${meta.badge}`}>
+                        <span className={`w-1 h-1 rounded-full ${meta.dot}`} />
+                        {meta.label}
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {days === 0 ? 'today' : `${days}d ago`}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelected(contact)}
+                    className="shrink-0 text-xs h-7 px-2.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    Log
+                  </Button>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
-      {selectedContact && (
-        <LogInteractionModal 
-          contact={selectedContact} 
-          isOpen={true} 
-          onClose={() => setSelectedContact(null)}
-          onSuccess={() => {
-            setSelectedContact(null);
-            onLogInteraction();
-          }}
+      {selected && (
+        <LogInteractionModal
+          contact={selected}
+          isOpen
+          onClose={() => setSelected(null)}
+          onSuccess={() => { setSelected(null); onLogInteraction(); }}
         />
       )}
     </>
